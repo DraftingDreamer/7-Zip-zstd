@@ -91,15 +91,15 @@ BROTLIMT_DCtx *BROTLIMT_createDCtx(int threads, int threadsset, int inputsize)
 	BROTLIMT_DCtx *ctx;
 	int t;
 
-	/* allocate ctx */
-	ctx = (BROTLIMT_DCtx *) malloc(sizeof(BROTLIMT_DCtx));
-	if (!ctx)
-		return 0;
-
 	/* check threads value */
 	if (!threadsset && threads > BROTLIMT_THREAD_MAX)
 		threads = BROTLIMT_THREAD_MAX;
 	if ((threads < 0 || threads > BROTLIMT_THREAD_MAX))
+		return 0;
+
+	/* allocate ctx */
+	ctx = (BROTLIMT_DCtx *) malloc(sizeof(BROTLIMT_DCtx));
+	if (!ctx)
 		return 0;
 
 	/* setup ctx */

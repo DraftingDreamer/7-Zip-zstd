@@ -92,13 +92,13 @@ LZ5MT_DCtx *LZ5MT_createDCtx(int threads, int inputsize)
 	LZ5MT_DCtx *ctx;
 	int t;
 
+	/* check threads value */
+	if (threads < 1 || threads > LZ5MT_THREAD_MAX)
+		return 0;
+
 	/* allocate ctx */
 	ctx = (LZ5MT_DCtx *) malloc(sizeof(LZ5MT_DCtx));
 	if (!ctx)
-		return 0;
-
-	/* check threads value */
-	if (threads < 1 || threads > LZ5MT_THREAD_MAX)
 		return 0;
 
 	/* setup ctx */

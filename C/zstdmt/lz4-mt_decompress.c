@@ -92,13 +92,13 @@ LZ4MT_DCtx *LZ4MT_createDCtx(int threads, int inputsize)
 	LZ4MT_DCtx *ctx;
 	int t;
 
+	/* check threads value */
+	if (threads < 1 || threads > LZ4MT_THREAD_MAX)
+		return 0;
+
 	/* allocate ctx */
 	ctx = (LZ4MT_DCtx *) malloc(sizeof(LZ4MT_DCtx));
 	if (!ctx)
-		return 0;
-
-	/* check threads value */
-	if (threads < 1 || threads > LZ4MT_THREAD_MAX)
 		return 0;
 
 	/* setup ctx */

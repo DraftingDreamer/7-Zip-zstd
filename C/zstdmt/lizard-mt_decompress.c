@@ -92,13 +92,13 @@ LIZARDMT_DCtx *LIZARDMT_createDCtx(int threads, int inputsize)
 	LIZARDMT_DCtx *ctx;
 	int t;
 
+	/* check threads value */
+	if (threads < 1 || threads > LIZARDMT_THREAD_MAX)
+		return 0;
+
 	/* allocate ctx */
 	ctx = (LIZARDMT_DCtx *) malloc(sizeof(LIZARDMT_DCtx));
 	if (!ctx)
-		return 0;
-
-	/* check threads value */
-	if (threads < 1 || threads > LIZARDMT_THREAD_MAX)
 		return 0;
 
 	/* setup ctx */
