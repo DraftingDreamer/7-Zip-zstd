@@ -18,6 +18,12 @@ CEncoder::CEncoder():
   unpackSize(0),
   _ctx(NULL)
 {
+  // GetNumberOfProcessors() is uncapped and sums all processor groups, while
+  // BROTLIMT_createCCtx() only accepts up to BROTLIMT_THREAD_MAX.
+  // BrotliHandler does call SetNumberOfThreads(), but the default has to be
+  // valid on its own.
+  if (_numThreads > (UInt32)BROTLIMT_THREAD_MAX)
+    _numThreads = (UInt32)BROTLIMT_THREAD_MAX;
   _props.clear();
 }
 
