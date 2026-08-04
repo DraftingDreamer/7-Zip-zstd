@@ -115,16 +115,20 @@ test regression--test-brotli-mt {7z regression test for with previous versions c
 	set ret
 } [lrepeat 9 1]
 
-test regression--test-brotli-st-with-mt {7z regression test for with previous versions compressed files (brotli-st, but specified mt)} -body {
+test regression--test-brotli-st-with-mt {7z regression test for with previous versions compressed files (brotli-st, but specified mt)} {
 	variable Z7_REGR_TEST_DIR
 	set ret {}
 	set p [file join $Z7_REGR_TEST_DIR test.txt.br]
-	# test of stream created with st-brotli must fail decompressing with mt-brotli:
+	# a thread count is an upper bound on workers, not a claim about the stream
+	# format, so the st stream must still decode with any of them (only the
+	# explicit -mmt=off forces a format, see regression--test-brotli-mt-with-st):
 	foreach opt {-mmt -mmt+ -mmt=on -mmt=1 -mmtp100 -mmtu100 -mmtd100 -mmtp1d1} {
-		lappend ret [catch {7z t -scrcSHA256 {*}$opt -- $p} res] $res
+		7z t -scrcSHA256 {*}$opt -- $p
+		assertLogged "Everything is Ok"
+		lappend ret 1
 	}
 	set ret
-} -match glob -result [lrepeat 8 1 "*ERROR: *Unspecified error*"]
+} [lrepeat 8 1]
 
 test regression--test-brotli-mt-with-st {7z regression test for with previous versions compressed files (brotli-mt, but specified st)} -body {
 	variable Z7_REGR_TEST_DIR

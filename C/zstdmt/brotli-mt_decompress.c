@@ -577,10 +577,10 @@ size_t BROTLIMT_decompressDCtx(BROTLIMT_DCtx * ctx, BROTLIMT_RdWr_t * rdwr)
 		return mt_error(rv);
 
 	if (
-		(ctx->threadsset && !ctx->threads) || /* -mmt=off - force single-threaded */
-		(!ctx->threadsset && (                /* no threads specified - auto detection */
-			in->size != 4 || MEM_readLE32(buf) != BROTLIMT_MAGIC_SKIPPABLE
-		))
+		(ctx->threadsset && !ctx->threads) || /* -mmt=off - user forces the raw format */
+		/* otherwise the content decides: a thread count is an upper bound on
+		   how many workers to use, not a statement about the stream format */
+		in->size != 4 || MEM_readLE32(buf) != BROTLIMT_MAGIC_SKIPPABLE
 	) {
 		/* raw single threaded brotli stream (no header, no mt-frames):
 		   hand back whatever bytes we already consumed above. */
