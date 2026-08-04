@@ -158,6 +158,29 @@ test regression--test-mt-option {7z regression test for with previous versions c
 	{test.txt.zstd.7z 11}
 } \n]
 
+test regression--test-brotli-in-7z-with-mmt {7z regression test for brotli inside a 7z container (global -mmt switch must not select the stream format)} {
+	variable Z7_REGR_TEST_DIR
+	set ret {}
+	# Inside a 7z container the stream format is already fixed by whatever the
+	# encoder wrote, so the global -mmt switch may only change how many threads
+	# are used, never which format is expected (unlike a bare .br file, where
+	# -mmt does select st vs mt, see regression--test-brotli-*-with-* above):
+	foreach fn {test.txt.br.7z test-sol.br.7z} {
+		set p [file join $Z7_REGR_TEST_DIR $fn]
+		set i 0
+		foreach opt {{} -mmt -mmt+ -mmt=on -mmt=1 -mmtp100 -mmtd100 -mmt- -mmt=off -mmt=0} {
+			7z t -scrcSHA256 {*}$opt -- $p
+			assertLogged "Everything is Ok"
+			incr i
+		}
+		lappend ret [list $fn $i]
+	}
+	join $ret \n
+} [join {
+	{test.txt.br.7z 10}
+	{test-sol.br.7z 10}
+} \n]
+
 set tmpdir [file join [temporaryDirectory] 7z-test-[format %x-%lx [pid] [clock microseconds]]]
 file mkdir $tmpdir
 
@@ -298,6 +321,38 @@ test regression--compress-zstd-max-allowed {zstd compression for 64-bit only, fa
 	zstd    ZSTD:l22
 	brotli  Brotli:l11
 	lz5     LZ5:l15
+}]
+
+test regression--roundtrip-brotli-in-7z-with-mmt {7z brotli in 7z container: whatever -mmt the writer used, reading back must not require repeating it} -body {
+	variable Z7_REGR_TEST_DIR
+	set src [file join $Z7_REGR_TEST_DIR ../7z-test.tcl]
+	set p [file join $tmpdir test-brotli-mmt-roundtrip.7z]
+	set ret {}
+	# -mmt=off makes the encoder write a raw brotli stream into the container
+	# instead of the mt one, so writer and reader disagreeing about -mmt is the
+	# interesting case here - it must still round-trip in both directions:
+	foreach w {{} -mmt- -mmt=off -mmt=0 -mmt+ -mmt=4} {
+		file delete $p
+		7z a -t7z -m0=brotli {*}$w -- $p $src
+		assertLogged {Everything is Ok}
+		set i 0
+		foreach r {{} -mmt- -mmt=off -mmt+ -mmt=4} {
+			7z t -scrcSHA256 {*}$r -- $p
+			assertLogged {Everything is Ok}
+			incr i
+		}
+		lappend ret [list [expr {$w eq {} ? {(default)} : $w}] $i]
+	}
+	set ret
+} -cleanup {
+	file delete $p
+} -result [list {*}{
+	{(default) 5}
+	{-mmt- 5}
+	{-mmt=off 5}
+	{-mmt=0 5}
+	{-mmt+ 5}
+	{-mmt=4 5}
 }]
 
 test regression--preserve-method-non-solid {7z add/del file in non-solid archive (preserve compression method, bug #340)} {

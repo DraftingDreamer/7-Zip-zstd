@@ -577,8 +577,8 @@ size_t BROTLIMT_decompressDCtx(BROTLIMT_DCtx * ctx, BROTLIMT_RdWr_t * rdwr)
 		return mt_error(rv);
 
 	if (
-		!ctx->threads ||       /* force single-threaded */
-		(!ctx->threadsset && ( /* no threads specified - auto detection */
+		(ctx->threadsset && !ctx->threads) || /* -mmt=off - force single-threaded */
+		(!ctx->threadsset && (                /* no threads specified - auto detection */
 			in->size != 4 || MEM_readLE32(buf) != BROTLIMT_MAGIC_SKIPPABLE
 		))
 	) {

@@ -75,7 +75,10 @@ CDecoder::CDecoder():
   _processedOut(0),
   _inputSize(0),
   _numThreads(NWindows::NSystem::GetNumberOfProcessors()),
-  _numThreads_WasForced(true) // mt-brotli in 7z container by default
+  // only the .br handler knows whether -mmt was forced and sets this itself
+  // (BrotliHandler.cpp); in a 7z container -mmt picks the thread count, never
+  // the stream format - that one is already fixed by what the encoder wrote:
+  _numThreads_WasForced(false)
 {
   _props.clear();
 }
